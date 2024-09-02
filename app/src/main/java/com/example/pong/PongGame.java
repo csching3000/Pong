@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -223,5 +224,47 @@ class PongGame extends SurfaceView implements Runnable{
 
         // Start the thread
         mGameThread.start();
+    }
+
+    // Handle all the screen touches
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+
+        // this switch block replaces the
+        // if statement from the Sub Hunter game
+        switch (motionEvent.getAction() & MotionEvent.ACTION_DOWN) {
+
+            // The player has put their finger on the screen
+            case MotionEvent.ACTION_DOWN:
+
+                // If the game was paused the unpause it
+                mPaused = false;
+
+                // Where the touch happens
+                if (motionEvent.getX() > mScreenX / 2) {
+                    // On the right hand side
+                    mBat.setMovementState(mBat.RIGHT);
+                }
+                else {
+                    // On the left hand side
+                    mBat.setMovementState(mBat.LEFT);
+                }
+
+                break;
+
+            // The player lifted their finger
+            // from anywhere on screen.
+            // It is possible to create bugs by using
+            // multiple fingers. We will use more
+            // complicated and robust touch handling
+            // in later projects
+            case MotionEvent.ACTION_UP:
+
+                // Stop the bat moving
+                mBat.setMovementState(mBat.STOPPED);
+                break;
+
+        }
+        return true;
     }
 }
