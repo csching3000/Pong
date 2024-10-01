@@ -1,13 +1,21 @@
 package com.example.pong;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.os.Build;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.io.IOException;
 
 class PongGame extends SurfaceView implements Runnable{
 
@@ -46,6 +54,13 @@ class PongGame extends SurfaceView implements Runnable{
     private volatile boolean mPlaying;
     private boolean mPaused = true;
 
+    // All these are for playing sounds
+    private SoundPool mSP;
+    private int mBeepID = -1;
+    private int mBoopID = -1;
+    private int mBopID = -1;
+    private int mMissID = -1;
+
     // The PongGame constructor
     // called when this line:
     // mPongGame = new PongGame(this, size.x, size.y);
@@ -75,6 +90,49 @@ class PongGame extends SurfaceView implements Runnable{
         // Initialize the bat and ball
         mBall = new Ball(mScreenX);
         mBat = new Bat(mScreenX, mScreenY);
+
+        // Prepare the SoundPool instance
+        // Depending upon the version of Android
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AudioAttributes audioAttributes =
+                    new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build();
+
+            mSP = new SoundPool.Builder()
+                    .setMaxStreams(5)
+                    .setAudioAttributes(audioAttributes)
+                    .build();
+        } else {
+            mSP = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
+        }
+
+        // Open each of the sound files in turn
+        // and load them into RAM ready to play
+        // The try-catch blocks handle when this fails
+        // and is required.
+        try{
+            AssetManager assetManager = context.getAssets();
+            AssetFileDescriptor descriptor;
+
+            descriptor = assetManager.openFd("beep.ogg");
+            mBeepID = mSP.load(descriptor, 0);
+
+            descriptor = assetManager.openFd("boop.ogg");
+            mBoopID = mSP.load(descriptor, 0);
+
+            descriptor = assetManager.openFd("bop.ogg");
+            mBopID = mSP.load(descriptor, 0);
+
+            descriptor = assetManager.openFd("miss.ogg");
+            mMissID = mSP.load(descriptor, 0);
+
+        }catch(IOException e){
+            Log.d("error", "failed to load sound files");
+        }
+
+
 
         // Everything is read so start the game
         startNewGame();
@@ -232,7 +290,7 @@ class PongGame extends SurfaceView implements Runnable{
 
         // this switch block replaces the
         // if statement from the Sub Hunter game
-        switch (motionEvent.getAction() & MotionEvent.ACTION_DOWN) {
+        switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
 
             // The player has put their finger on the screen
             case MotionEvent.ACTION_DOWN:
