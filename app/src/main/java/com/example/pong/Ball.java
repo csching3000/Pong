@@ -33,7 +33,7 @@ public class Ball {
     }
 
     // Return a reference to mRect to PongGame
-    public RectF getmRect() {
+    public RectF getRect() {
         return mRect;
     }
 
@@ -61,7 +61,7 @@ public class Ball {
     }
 
     // Reverse the horizontal direction of travel
-    void reverseXVeloctiy() {
+    void reverseXVelocity() {
         mXVelocity = -mXVelocity;
     }
 

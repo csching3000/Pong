@@ -6,6 +6,7 @@ import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -132,8 +133,6 @@ class PongGame extends SurfaceView implements Runnable{
             Log.d("error", "failed to load sound files");
         }
 
-
-
         // Everything is read so start the game
         startNewGame();
     }
@@ -163,8 +162,8 @@ class PongGame extends SurfaceView implements Runnable{
             mPaint.setColor(Color.argb(255, 255, 255, 255));
 
             // Draw the bat and ball
-            mCanvas.drawRect(mBall.getmRect(), mPaint);
-            mCanvas.drawRect(mBat.getmRect(), mPaint);
+            mCanvas.drawRect(mBall.getRect(), mPaint);
+            mCanvas.drawRect(mBat.getRect(), mPaint);
 
             // Choose the font size
             mPaint.setTextSize(mFontSize);
@@ -245,16 +244,41 @@ class PongGame extends SurfaceView implements Runnable{
 
     private void detectCollisions() {
         // Has the bat hit the ball?
+        if(RectF.intersects(mBat.getRect(), mBall.getRect())) {
+            // realistic bounce
+            mBall.batBounce(mBat.getRect());
+            mBall.increaseVelocity();;
+            mScore++;
+            mSP.play(mBeepID, 1, 1, 0, 0, 1);
+        }
 
         // Has the ball hit the edge of the screen
 
         // Bottom
-
+        if(mBall.getRect().bottom > mScreenY) {
+            mBall.reverseYVelocity();
+            mLives--;
+            mSP.play(mMissID, 1, 1, 0, 0, 1);
+            if(mLives == 0) {
+                mPaused = true;
+                startNewGame();
+            }
+        }
         // Top
-
+        if(mBall.getRect().top < 0) {
+            mBall.reverseYVelocity();
+            mSP.play(mBoopID, 1, 1, 0, 0, 1);
+        }
         // Left
-
+        if(mBall.getRect().left < 0) {
+            mBall.reverseXVelocity();
+            mSP.play(mBopID, 1, 1, 0, 0, 1);
+        }
         // Right
+        if(mBall.getRect().right > mScreenX) {
+            mBall.reverseXVelocity();
+            mSP.play(mBopID, 1, 1, 0, 0, 1);
+        }
     }
 
     // This method is called by PongActivity

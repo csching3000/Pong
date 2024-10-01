@@ -59,7 +59,7 @@ public class Bat {
     }
 
     // Return a reference to the mRect object
-    public RectF getmRect() {
+    public RectF getRect() {
         return mRect;
     }
 
